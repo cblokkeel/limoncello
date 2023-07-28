@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"os"
 	"sort"
 
 	"github.com/cblokkeel/limoncello/core"
@@ -27,7 +28,7 @@ func NewEmbedder() (*Embedder, error) {
 		return nil, err
 	}
 
-	client := openai.NewClient("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")
+	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
 	return &Embedder{
 		store,

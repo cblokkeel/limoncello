@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/cblokkeel/limoncello/vector"
 	"github.com/gofiber/fiber/v2"
@@ -37,7 +38,7 @@ func (h *DatabseHandler) HandleEmbedd(c *fiber.Ctx) error {
 		return c.Status(400).JSON(map[string]string{"error": "bad parameters"})
 	}
 	if err := h.embedder.EmbeddDocument(c.Context(), coll, b.Key, b.Input); err != nil {
-		return c.Status(400).JSON(map[string]string{"error": fmt.Sprintf("Collection %s does not exist", coll)})
+		return c.Status(400).JSON(map[string]string{"error": err.Error()})
 	}
 	return c.JSON(map[string]string{"ok": fmt.Sprintf("Document %s embedded", b.Key)})
 }
@@ -51,16 +52,17 @@ func (h *DatabseHandler) HandleCreateCollection(c *fiber.Ctx) error {
 }
 
 func (h *DatabseHandler) HandleSearch(c *fiber.Ctx) error {
-	coll := c.Params("coll")
+	qColls := c.Query("colls")
+	colls := strings.Split(qColls, ",")
 	n, err := strconv.Atoi(c.Query("n"))
 	if err != nil {
 		return c.Status(400).JSON(map[string]string{"error": "bad parameters"})
 	}
 	q := c.Query("q")
 
-	res, err := h.embedder.NearestDocuments(c.Context(), []string{coll}, q, n)
+	res, err := h.embedder.NearestDocuments(c.Context(), colls, q, n)
 	if err != nil {
-		return err
+		return c.Status(400).JSON(map[string]string{"error": err.Error()})
 	}
 	return c.JSON(res)
 }
