@@ -1,4 +1,4 @@
-package core
+package db
 
 import (
 	"fmt"
@@ -11,29 +11,29 @@ type Pair struct {
 	V []byte
 }
 
-type BoltDB struct {
+type Limoncello struct {
 	db *bbolt.DB
 }
 
-func NewBoltDB() (*BoltDB, error) {
+func NewLimoncello() (*Limoncello, error) {
 	db, err := bbolt.Open("data.db", 0666, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return &BoltDB{
+	return &Limoncello{
 		db,
 	}, nil
 }
 
-func (bdb *BoltDB) Close() error {
-	return bdb.db.Close()
+func (l *Limoncello) Close() error {
+	return l.db.Close()
 }
 
-func (bdb *BoltDB) ReadCollections(colls []string) ([]*Pair, error) {
+func (l *Limoncello) ReadCollections(colls []string) ([]*Pair, error) {
 	pairs := []*Pair{}
 	for _, coll := range colls {
-		collPairs, err := bdb.ReadCollection(coll)
+		collPairs, err := l.ReadCollection(coll)
 		if err != nil {
 			return nil, err
 		}
@@ -42,9 +42,9 @@ func (bdb *BoltDB) ReadCollections(colls []string) ([]*Pair, error) {
 	return pairs, nil
 }
 
-func (bdb *BoltDB) ReadCollection(collName string) ([]*Pair, error) {
+func (l *Limoncello) ReadCollection(collName string) ([]*Pair, error) {
 	pairs := []*Pair{}
-	if err := bdb.db.View(func(tx *bbolt.Tx) error {
+	if err := l.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(collName))
 		if b == nil {
 			return fmt.Errorf("Collection %s does not exist", collName)
@@ -61,8 +61,8 @@ func (bdb *BoltDB) ReadCollection(collName string) ([]*Pair, error) {
 	return pairs, nil
 }
 
-func (bdb *BoltDB) CreateCollection(collName string) error {
-	if err := bdb.db.Update(func(tx *bbolt.Tx) error {
+func (l *Limoncello) CreateCollection(collName string) error {
+	if err := l.db.Update(func(tx *bbolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(collName))
 		if err != nil {
 			return fmt.Errorf("Error while creating new collection: %s", err)
@@ -74,9 +74,9 @@ func (bdb *BoltDB) CreateCollection(collName string) error {
 	return nil
 }
 
-func (bdb *BoltDB) ReadKeyInCollection(collName string, k string) ([]byte, error) {
+func (l *Limoncello) ReadKeyInCollection(collName string, k string) ([]byte, error) {
 	var v []byte
-	if err := bdb.db.Update(func(tx *bbolt.Tx) error {
+	if err := l.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(collName))
 		if b == nil {
 			return fmt.Errorf("Collection %s does not exist", collName)
@@ -89,8 +89,8 @@ func (bdb *BoltDB) ReadKeyInCollection(collName string, k string) ([]byte, error
 	return v, nil
 }
 
-func (bdb *BoltDB) UpsertInCollection(collName string, k string, v string) error {
-	if err := bdb.db.Update(func(tx *bbolt.Tx) error {
+func (l *Limoncello) UpsertInCollection(collName string, k string, v string) error {
+	if err := l.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(collName))
 		if b == nil {
 			return fmt.Errorf("Invalid collection: %s", collName)
@@ -103,8 +103,8 @@ func (bdb *BoltDB) UpsertInCollection(collName string, k string, v string) error
 	return nil
 }
 
-func (bdb *BoltDB) DeleteKeyInCollection(collName string, k string) error {
-	if err := bdb.db.Update(func(tx *bbolt.Tx) error {
+func (l *Limoncello) DeleteKeyInCollection(collName string, k string) error {
+	if err := l.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(collName))
 		if b == nil {
 			return fmt.Errorf("Collection %s does not exist", collName)
@@ -120,8 +120,8 @@ func (bdb *BoltDB) DeleteKeyInCollection(collName string, k string) error {
 	return nil
 }
 
-func (bdb *BoltDB) DeleteCollection(collName string) error {
-	if err := bdb.db.Update(func(tx *bbolt.Tx) error {
+func (l *Limoncello) DeleteCollection(collName string) error {
+	if err := l.db.Update(func(tx *bbolt.Tx) error {
 		err := tx.DeleteBucket([]byte(collName))
 		if err != nil {
 			return fmt.Errorf("Collection %s does not exist", collName)

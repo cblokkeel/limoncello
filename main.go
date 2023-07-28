@@ -15,7 +15,7 @@ func main() {
 	}
 	app := fiber.New()
 	apiv1 := app.Group("/api/v1")
-	dbHandler, err := api.NewDatabaseHandler()
+	dbHandler, err := api.NewLimoncelloHandler()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,5 +26,4 @@ func main() {
 	apiv1.Get("/search", dbHandler.HandleSearch)
 
 	app.Listen(":8000")
-
 }

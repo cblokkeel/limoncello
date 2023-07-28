@@ -8,12 +8,12 @@ import (
 	"os"
 	"sort"
 
-	"github.com/cblokkeel/limoncello/core"
+	"github.com/cblokkeel/limoncello/db"
 	"github.com/sashabaranov/go-openai"
 )
 
 type Embedder struct {
-	store  *core.BoltDB
+	store  *db.Limoncello
 	client *openai.Client
 }
 
@@ -23,7 +23,7 @@ type SearchResults struct {
 }
 
 func NewEmbedder() (*Embedder, error) {
-	store, err := core.NewBoltDB()
+	store, err := db.NewLimoncello()
 	if err != nil {
 		return nil, err
 	}
